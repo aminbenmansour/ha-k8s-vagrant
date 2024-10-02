@@ -1,1 +1,1 @@
-# substrate-hands-on
+# ha-k8s-vagrant
