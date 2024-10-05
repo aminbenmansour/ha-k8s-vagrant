@@ -14,3 +14,38 @@ NUM_WORKER_NODES = 2
 IP_NW = "192.168.56"
 MASTER_IP_START = 11
 NODE_IP_START = 20
+
+# Host operating sysem detection
+module OS
+  def OS.windows?
+    (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+  end
+
+  def OS.mac?
+    (/darwin/ =~ RUBY_PLATFORM) != nil
+  end
+
+  def OS.unix?
+    !OS.windows?
+  end
+
+  def OS.linux?
+    OS.unix? and not OS.mac?
+  end
+
+  def OS.jruby?
+    RUBY_ENGINE == "jruby"
+  end
+end
+
+# Determine host adpater for bridging in BRIDGE mode
+def get_bridge_adapter()
+  if OS.windows?
+    return %x{powershell -Command "Get-NetRoute -DestinationPrefix 0.0.0.0/0 | Get-NetAdapter | Select-Object -ExpandProperty InterfaceDescription"}.chomp
+  elsif OS.linux?
+    return %x{ip route | grep default | awk '{ print $5 }'}.chomp
+  elsif OS.mac?
+    return %x{mac/mac-bridge.sh}.chomp
+  end
+end
+
