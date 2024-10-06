@@ -131,4 +131,23 @@ Vagrant.configure("2") do |config|
     end
     provision_kubernetes_node node
   end
+
+  # Provision Worker Nodes
+  (1..NUM_WORKER_NODES).each do |i|
+    config.vm.define "node0#{i}" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "node0#{i}"
+        vb.memory = 1024
+        vb.cpus = 1
+      end
+      node.vm.hostname = "node0#{i}"
+      if BUILD_MODE == "BRIDGE"
+        node.vm.network :public_network, bridge: get_bridge_adapter()
+      else
+        node.vm.network :private_network, ip: IP_NW + ".#{NODE_IP_START + i}"
+        node.vm.network "forwarded_port", guest: 22, host: "#{2720 + i}"
+      end
+      provision_kubernetes_node node
+    end
+  end
 end
