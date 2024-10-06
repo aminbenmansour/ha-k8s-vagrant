@@ -112,4 +112,23 @@ Vagrant.configure("2") do |config|
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
   config.vm.box_check_update = false
+
+  # Provision Master Nodes
+  config.vm.define "controlplane" do |node|
+    # Name shown in the GUI
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "controlplane"
+      vb.memory = 2048
+      vb.cpus = 2
+    end
+    node.vm.hostname = "controlplane"
+    if BUILD_MODE == "BRIDGE"
+      adapter = ""
+      node.vm.network :public_network, bridge: get_bridge_adapter()
+    else
+      node.vm.network :private_network, ip: IP_NW + ".#{MASTER_IP_START}"
+      node.vm.network "forwarded_port", guest: 22, host: "#{2710}"
+    end
+    provision_kubernetes_node node
+  end
 end
