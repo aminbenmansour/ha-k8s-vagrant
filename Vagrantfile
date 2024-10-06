@@ -74,3 +74,21 @@ def all_nodes_up()
   end
   return true
 end
+
+# Sets up hosts file and DNS
+def setup_dns(node)
+  # Set up /etc/hosts
+  node.vm.provision "setup-hosts", :type => "shell", :path => "vagrant/setup-hosts.sh" do |s|
+    s.args = [IP_NW, BUILD_MODE, NUM_WORKER_NODES, MASTER_IP_START, NODE_IP_START]
+  end
+  # Set up DNS resolution
+  node.vm.provision "setup-dns", type: "shell", :path => "ubuntu/update-dns.sh"
+end
+
+# Runs provisioning steps that are required by masters and workers
+def provision_kubernetes_node(node)
+  # Set up DNS
+  setup_dns node
+  # Set up ssh
+  node.vm.provision "setup-ssh", :type => "shell", :path => "ubuntu/ssh.sh"
+end
