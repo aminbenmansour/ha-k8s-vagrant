@@ -150,4 +150,53 @@ Vagrant.configure("2") do |config|
       provision_kubernetes_node node
     end
   end
+
+  if BUILD_MODE == "BRIDGE"
+    # Trigger that fires after each VM starts.
+    # Does nothing until all the VMs have started, at which point it
+    # gathers the IP addresses assigned to the bridge interfaces by DHCP
+    # and pushes a hosts file to each node with these IPs.
+    config.trigger.after :up do |trigger|
+      trigger.name = "Post provisioner"
+      trigger.ignore = [:destroy, :halt]
+      trigger.ruby do |env, machine|
+        if all_nodes_up()
+          puts "    Gathering IP addresses of nodes..."
+          nodes = ["controlplane"]
+          ips = []
+          (1..NUM_WORKER_NODES).each do |i|
+            nodes.push("node0#{i}")
+          end
+          nodes.each do |n|
+            ips.push(%x{vagrant ssh #{n} -c 'public-ip'}.chomp)
+          end
+          hosts = ""
+          ips.each_with_index do |ip, i|
+            hosts << ip << "  " << nodes[i] << "\n"
+          end
+          puts "    Setting /etc/hosts on nodes..."
+          File.open("hosts.tmp", "w") { |file| file.write(hosts) }
+          nodes.each do |node|
+            system("vagrant upload hosts.tmp /tmp/hosts.tmp #{node}")
+            system("vagrant ssh #{node} -c 'cat /tmp/hosts.tmp | sudo tee -a /etc/hosts'")
+          end
+          File.delete("hosts.tmp")
+          puts <<~EOF
+
+                 VM build complete!
+
+                 Use either of the following to access any NodePort services you create from your browser
+                 replacing "port_number" with the number of your NodePort.
+
+               EOF
+          (1..NUM_WORKER_NODES).each do |i|
+            puts "  http://#{ips[i]}:port_number"
+          end
+          puts ""
+        else
+          puts "    Nothing to do here"
+        end
+      end
+    end
+  end
 end
