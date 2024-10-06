@@ -41,3 +41,10 @@ echo "PRIMARY_IP=${MY_IP}" >> /etc/environment
 
 [ "$BUILD_MODE" = "BRIDGE" ] && exit 0
 
+# Update /etc/hosts about other hosts (NAT mode)
+echo "${MY_NETWORK}.${MASTER_IP_START} controlplane" >> /etc//hosts
+for i in $(seq 1 $NUM_WORKER_NODES)
+do
+    num=$(( $NODE_IP_START + $i ))
+    echo "${MY_NETWORK}.${num} node0${i}" >> /etc//hosts
+done
