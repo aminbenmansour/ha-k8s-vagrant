@@ -49,3 +49,28 @@ def get_bridge_adapter()
   end
 end
 
+# Helper method to get the machine ID of a node.
+# This will only be present if the node has been
+# created in VirtualBox.
+def get_machine_id(vm_name)
+  machine_id_filepath = ".vagrant/machines/#{vm_name}/virtualbox/id"
+  if not File.exist? machine_id_filepath
+    return nil
+  else
+    return File.read(machine_id_filepath)
+  end
+end
+
+# Helper method to determine whether all nodes are up
+def all_nodes_up()
+  if get_machine_id("controlplane").nil?
+    return false
+  end
+
+  (1..NUM_WORKER_NODES).each do |i|
+    if get_machine_id("node0#{i}").nil?
+      return false
+    end
+  end
+  return true
+end
