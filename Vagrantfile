@@ -1,3 +1,6 @@
+# -*- mode: ruby -*-
+# vi:set ft=ruby sw=2 ts=2 sts=2:
+
 # Set the build mode
 # "BRIDGE" - Places VMs on your local network so cluster can be accessed from browser.
 #            You must have enough spare IPs on your network for the cluster nodes.
@@ -130,6 +133,10 @@ Vagrant.configure("2") do |config|
       node.vm.network "forwarded_port", guest: 22, host: "#{2710}"
     end
     provision_kubernetes_node node
+
+    # Install configs for vim and tmux on master-1.
+    node.vm.provision "file", source: "./utils/tmux.conf", destination: "$HOME/.tmux.conf"
+    node.vm.provision "file", source: "./utils/vimrc", destination: "$HOME/.vimrc"
   end
 
   # Provision Worker Nodes
