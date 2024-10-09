@@ -1,5 +1,6 @@
 #!/bin/bash
 
+$PRIMARY_IP=$1
 POD_CIDR=10.244.0.0/16
 SERVICE_CIDR=10.96.0.0/16
 
