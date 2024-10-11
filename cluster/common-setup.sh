@@ -1,5 +1,8 @@
 #!/bin/bash
 
+swapoff -a
+sed -i '/swap/s/^/#/' /etc/fstab
+
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl
 
