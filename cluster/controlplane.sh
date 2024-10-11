@@ -1,6 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
-$PRIMARY_IP=$1
+PRIMARY_IP=$1
 POD_CIDR=10.244.0.0/16
 SERVICE_CIDR=10.96.0.0/16
 
@@ -17,6 +18,12 @@ kubectl --kubeconfig /etc/kubernetes/admin.conf \
 # generate the join command for worker nodes
 cat <<EOF > worker-node.sh
 #!/bin/bash
+
+# enforce the script is run as root
+if [ "\$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root" >&2
+  exit 1
+fi
 
 $JOIN_COMMAND
 EOF
