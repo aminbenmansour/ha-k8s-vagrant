@@ -45,6 +45,8 @@ crictl config \
     --set runtime-endpoint=unix:///run/containerd/containerd.sock \
     --set image-endpoint=unix:///run/containerd/containerd.sock
 
+
+NETWORK_INTERFACE=$(ip addr | awk '/state UP/ {print $2}' | sed 's/.$//')
 cat <<EOF > /etc/default/kubelet
 KUBELET_EXTRA_ARGS='--node-ip $(ip -4 addr show enp0s8 | grep "inet" | head -1 |awk '{print $2}' | cut -d/ -f1)'
 EOF
